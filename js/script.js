@@ -15,12 +15,14 @@ const ballRadius = canvas.width * 0.01; // Пример: 1% ширины хол�
 let paddleHeight = canvas.height * 0.03; // Пример: 3% высоты холста
 let paddleWidth = canvas.width * 0.15; // Пример: 15% ширины холста
 let paddleX = (canvas.width - paddleWidth) / 2;
-let rightPressed = false; // Добавлено
-let leftPressed = false; // Добавлено
 
-let touchX; // Переменная для хранения положения касания
+let rightPressed = false;
+let leftPressed = false;
+
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
+canvas.addEventListener('touchstart', touchStartHandler, false);
+canvas.addEventListener('touchmove', touchMoveHandler, false);
 
 function keyDownHandler(e) {
     if(e.key === 'Right' || e.key === 'ArrowRight') {
@@ -38,30 +40,19 @@ function keyUpHandler(e) {
     }
 }
 
-
-canvas.addEventListener('touchstart', touchStartHandler, false);
-canvas.addEventListener('touchmove', touchMoveHandler, false);
-
 function touchStartHandler(e) {
-    // Получаем координаты касания
     let touch = e.touches[0];
-    touchX = touch.clientX - canvas.offsetLeft;
-    // Проверяем, находится ли палец на панели
-    if (touch.clientX > paddleX && touch.clientX < paddleX + paddleWidth && touch.clientY > canvas.height - paddleHeight) {
-        // Если палец на панели, запоминаем начальную позицию панели
-        touchX = touch.clientX - paddleX;
-    }
-    e.preventDefault(); // Предотвращаем стандартное поведение браузера
+    touchX = touch.clientX;
+    e.preventDefault();
 }
 
 function touchMoveHandler(e) {
     let touch = e.touches[0];
-    let newPaddleX = touch.clientX - touchX;
-    // Проверяем, чтобы панель не вышла за пределы холста
-    if (newPaddleX > 0 && newPaddleX < canvas.width - paddleWidth) {
-        paddleX = newPaddleX;
+    let relativeX = touch.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth / 2;
     }
-    e.preventDefault(); // Предотвращаем стандартное поведение браузера
+    e.preventDefault();
 }
 
 function drawBall() {
@@ -96,6 +87,12 @@ function draw() {
         } else {
             document.location.reload();
         }
+    }
+
+    if(rightPressed && paddleX < canvas.width - paddleWidth) {
+        paddleX += 7;
+    } else if(leftPressed && paddleX > 0) {
+        paddleX -= 7;
     }
 
     x += dx;
